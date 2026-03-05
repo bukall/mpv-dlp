@@ -209,4 +209,4 @@ __marimo__/
 # AI
 /.claude
 
-show_args.exe
+*.exe
