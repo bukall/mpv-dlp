@@ -31,9 +31,23 @@
 
 ### 获取直链
 
-如何获取视频直链不在本项目范围内，可参考：
-- 使用 Fiddler 抓包
+如何获取视频直链不在本项目范围内，可参考以下方式：
+
+#### 方式 1：使用 Fiddler 抓包
+- 使用 Fiddler 抓包分析网络请求
+- 找到视频流的真实地址
+
+#### 方式 2：使用 Process Explorer 查看参数
 - 调用外部 mpv 播放器后使用 Process Explorer 查看调用参数
+
+#### 方式 3：使用 show_args.exe（新增）
+1. **下载预编译版本**：从项目的 GitHub Releases 页面下载打包好的 `show_args.exe`
+2. **或者自行编译**：运行 `python build_show_args_exe.py` 自行打包（需要 `pip install pyinstaller`）
+3. **配置外部播放器**：在播放器设置中将外部播放器路径设置为 `show_args.exe`
+4. **获取直链**：在要获取直链的视频界面点击"外部播放器"按钮，程序会将所有参数记录到 `show_args.log` 文件中
+5. **查看直链**：在 `show_args.log` 文件中找到完整的命令行，从中提取视频直链
+
+**注意**：`show_args.exe` 会在显示参数后保持运行，按 Ctrl+C 退出。日志文件会保存在与 `show_args.exe` 相同的目录中。
 
 ## 🔧 环境要求
 
