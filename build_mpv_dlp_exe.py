@@ -12,15 +12,10 @@ import subprocess
 def build_exe():
     # 源文件路径
     main_file = "main.py"
-    download_file = "mpv_download.py"
 
     # 检查源文件是否存在
     if not os.path.exists(main_file):
         print(f"错误: 找不到源文件 {main_file}")
-        return False
-
-    if not os.path.exists(download_file):
-        print(f"错误: 找不到源文件 {download_file}")
         return False
 
     # 为 main.py 构建命令
@@ -31,16 +26,6 @@ def build_exe():
         "--name", "mpv-dlp",
         "--clean",
         main_file
-    ]
-
-    # 为 mpv_download.py 构建命令
-    cmd_download = [
-        sys.executable, "-m", "PyInstaller",
-        "--onefile",
-        "--console",
-        "--name", "MPV_download",
-        "--clean",
-        download_file
     ]
 
     print("开始编译 mpv-dlp...")
@@ -60,27 +45,6 @@ def build_exe():
             return False
     except Exception as e:
         print(f"\n❌ mpv-dlp 编译过程中发生错误: {e}")
-        return False
-
-    print("\n" + "="*50)
-    print("开始编译 MPV_download...")
-    print(f"执行命令: {' '.join(cmd_download)}")
-
-    try:
-        # 执行 mpv_download.py 编译
-        result = subprocess.run(cmd_download, capture_output=True, text=True)
-
-        if result.returncode == 0:
-            print("\n✅ MPV_download 编译成功!")
-            print("输出文件: dist\\MPV_download.exe")
-            return True
-        else:
-            print("\n❌ MPV_download 编译失败!")
-            print("\n错误输出:")
-            print(result.stderr)
-            return False
-    except Exception as e:
-        print(f"\n❌ MPV_download 编译过程中发生错误: {e}")
         return False
 
 def main():
