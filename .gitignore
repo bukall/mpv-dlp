@@ -210,3 +210,5 @@ __marimo__/
 /.claude
 
 *.exe
+videos_from_args.csv
+videos_from_log.csv
