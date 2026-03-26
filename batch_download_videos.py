@@ -38,16 +38,17 @@ def get_csv_file_from_args() -> str:
 def get_csv_file_from_user() -> str:
     """
     从用户输入获取 CSV 文件路径
+    如果直接按回车，使用默认文件 "videos_from_args.csv"
     
     返回值:
         CSV 文件的完整路径
     """
     while True:
-        csv_path = input("\n请输入 CSV 文件路径: ").strip()
+        csv_path = input("\n请输入 CSV 文件路径 (默认: videos_from_args.csv): ").strip()
         
+        # 如果为空，使用默认值
         if not csv_path:
-            print("❌ 路径不能为空，请重新输入")
-            continue
+            csv_path = "videos_from_args.csv"
         
         # 移除引号（如果有）
         csv_path = csv_path.strip('"\'')
@@ -78,11 +79,9 @@ def read_csv_file(csv_path: str) -> List[Tuple[str, str]]:
     try:
         with open(csv_path, 'r', encoding='utf-8') as f:
             reader = csv.reader(f)
-            # 跳过标题行
-            header = next(reader, None)
             
-            for row_num, row in enumerate(reader, start=2):
-                if len(row) < 2:
+            for row_num, row in enumerate(reader, start=1):
+                if len(row) < 1:
                     print(f"⚠️  第 {row_num} 行数据不足，跳过")
                     continue
                 
