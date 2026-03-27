@@ -729,13 +729,11 @@ class VideoDownloader:
         try:
             print(f"🎬 执行命令: {' '.join(cmd)}\n")
             
-            # 启动进程
+            # 启动进程（使用二进制模式以保留 \r 字符）
             process = subprocess.Popen(
                 cmd,
                 stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                universal_newlines=True,
-                bufsize=1
+                stderr=subprocess.STDOUT
             )
             
             # 实时显示输出
@@ -755,7 +753,7 @@ class VideoDownloader:
             print("\n⚠️  用户中断下载")
             process.terminate()
             try:
-                process.wait(timeout=5)
+                process.wait(timeout=2)
             except subprocess.TimeoutExpired:
                 process.kill()
             return False
@@ -768,7 +766,7 @@ class VideoDownloader:
         实时显示 mpv 的输出信息
         
         参数:
-            process: subprocess.Popen 实例
+            process: subprocess.Popen 实例（二进制模式）
         
         显示内容:
             - 下载进度百分比
@@ -777,22 +775,60 @@ class VideoDownloader:
             - 警告信息
             - 错误信息
         
-        刷新频率:
-            约每 1 秒刷新一次
+        处理:
+            - 自动处理 mpv 的 \r 进度条，防止刷屏
+            - 进度条原地更新而不是每次打印新行
+            - 正确识别 \r 和 \n 字符
         """
         if process.stdout:
-            last_flush = time.time()
-            for line in process.stdout:
-                line = line.strip()
-                if line:
-                    print(line)
-                    # 每 1 秒刷新一次输出
-                    current_time = time.time()
-                    if current_time - last_flush >= 1.0:
-                        sys.stdout.flush()
-                        last_flush = current_time
-            # 最后确保所有输出都刷新
-            sys.stdout.flush()
+            buffer = b''
+            progress_line = ''
+            
+            for byte_chunk in iter(lambda: process.stdout.read(1), b''):
+                if not byte_chunk:
+                    break
+                
+                buffer += byte_chunk
+                
+                # 检查是否是 \r
+                if byte_chunk == b'\r':
+                    # \r 用于进度条更新（原地覆盖）
+                    try:
+                        line_str = buffer[:-1].decode('utf-8', errors='replace').strip()
+                    except:
+                        line_str = str(buffer[:-1])
+                    
+                    if line_str:
+                        progress_line = line_str
+                        # 用 \r 实现原地更新进度条
+                        print(f"\r{progress_line}", end='', flush=True)
+                    buffer = b''
+                
+                # 检查是否是 \n（换行）
+                elif byte_chunk == b'\n':
+                    try:
+                        line_str = buffer[:-1].decode('utf-8', errors='replace').strip()
+                    except:
+                        line_str = str(buffer[:-1])
+                    
+                    if line_str:
+                        # 新行会清除进度条，打印完整的新消息
+                        print(line_str)
+                        progress_line = ''
+                    buffer = b''
+        
+            # 处理剩余的缓冲区
+            if buffer:
+                try:
+                    line_str = buffer.decode('utf-8', errors='replace').strip()
+                except:
+                    line_str = str(buffer)
+                if line_str:
+                    print(line_str)
+            
+            # 最后确保光标在新行
+            if progress_line:
+                print()
 
 
 def download_video(
