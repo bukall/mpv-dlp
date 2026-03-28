@@ -3,7 +3,7 @@
 """
 直接从调用的命令行参数中提取视频链接和标题，保存到 CSV
 用法与 show_args.py 类似，接收 mpv 传入的参数
-第一列为链接，第二列为标题
+第一列为链接，第二列为标题，第三列为外挂字幕列表
 """
 
 import sys
@@ -56,18 +56,23 @@ def extract_from_argv():
         else:
             title = ""
 
+        # 提取外挂字幕列表（所有 --sub-file= 参数）
+        subtitles = re.findall(r"--sub-file=(https?://[^\s]+)", item)
+        subtitles = [s.strip() for s in subtitles]  # 清理空格
+        
         if url:
-            videos.append((url, title))
-            print(f"发现视频: {title or '(无标题)'}")
+            videos.append((url, title, str(subtitles)))
+            subtitle_info = f", {len(subtitles)} 个字幕" if subtitles else ""
+            print(f"发现视频: {title or '(无标题)'}{subtitle_info}")
 
     # 去重（保持原有顺序）
     if videos:
         seen = set()
         unique_videos = []
-        for url, title in videos:
+        for url, title, subtitles in videos:
             if url not in seen:
                 seen.add(url)
-                unique_videos.append((url, title))
+                unique_videos.append((url, title, subtitles))
 
         # 写入 CSV（追加模式）
         try:

@@ -65,10 +65,11 @@ def main():
     # 等待用户按下 Ctrl+C
     print("\n按 Ctrl+C 退出...")
     try:
-        # 使用一个无限循环来保持程序运行
-        # 使用 time.sleep() 而不是 signal.pause() 以保持跨平台兼容性
-        while True:
-            time.sleep(1)
+        # # 使用一个无限循环来保持程序运行
+        # # 使用 time.sleep() 而不是 signal.pause() 以保持跨平台兼容性
+        # while True:
+        #     time.sleep(1)
+        time.sleep(10)  # 等待 10 秒后自动退出
     except KeyboardInterrupt:
         print("\n收到中断信号，程序退出")
 

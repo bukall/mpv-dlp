@@ -20,9 +20,11 @@ import hashlib
 import re
 import time
 from pathlib import Path
-from typing import Optional, Tuple
+from typing import Optional, Tuple, List
 from urllib.parse import urlparse, parse_qs
 import argparse
+import urllib.request
+import urllib.error
 
 
 class MPVNotFoundError(Exception):
@@ -906,6 +908,135 @@ def download_video(
         return False
     except Exception as e:
         print(f"❌ 发生错误: {e}")
+        return False
+
+
+def download_subtitles(
+    subtitle_urls: List[str],
+    video_filename: str
+) -> bool:
+    """
+    下载多个外挂字幕文件
+    
+    参数:
+        subtitle_urls: 字幕 URL 列表
+        video_filename: 视频文件名（含后缀），用于生成字幕文件名
+    
+    返回值:
+        True 所有字幕下载成功，False 部分或全部失败
+    
+    字幕文件命名规则（MPV 自动读取）:
+        - 第一个字幕: video.srt（主字幕）
+        - 第二个字幕: video.1.srt（辅助字幕 1）
+        - 第三个字幕: video.2.srt（辅助字幕 2）
+        - 以此类推...
+    
+    处理流程:
+        1. 提取视频文件名（不含后缀）
+        2. 对每个字幕 URL：
+           - 确定字幕文件名
+           - 下载字幕内容
+           - 保存到本地
+        3. 返回下载结果
+    """
+    if not subtitle_urls or len(subtitle_urls) == 0:
+        return True  # 没有字幕时返回成功
+    
+    # 提取视频文件名（不含后缀）
+    video_base_name = os.path.splitext(video_filename)[0]
+    
+    # 获取视频所在目录
+    video_dir = os.path.dirname(os.path.abspath(video_filename))
+    if not video_dir:
+        video_dir = os.getcwd()
+    
+    success_count = 0
+    
+    try:
+        for index, subtitle_url in enumerate(subtitle_urls):
+            try:
+                # 确定字幕文件名
+                if index == 0:
+                    # 第一个字幕使用主名称
+                    subtitle_filename = f"{video_base_name}.srt"
+                else:
+                    # 其他字幕使用索引后缀
+                    subtitle_filename = f"{video_base_name}.{index}.srt"
+                
+                # 获取完整路径
+                subtitle_path = os.path.join(video_dir, subtitle_filename)
+                
+                print(f"  📝 下载字幕 {index + 1}: {subtitle_filename}")
+                
+                # 下载字幕
+                if _download_subtitle_file(subtitle_url, subtitle_path):
+                    print(f"  ✅ 字幕 {index + 1} 下载完成")
+                    success_count += 1
+                else:
+                    print(f"  ❌ 字幕 {index + 1} 下载失败: {subtitle_url[:60]}...")
+            
+            except KeyboardInterrupt:
+                print(f"\n⚠️  用户中断字幕下载")
+                raise
+            
+            except Exception as e:
+                print(f"  ❌ 处理字幕 {index + 1} 时出错: {e}")
+    
+    except KeyboardInterrupt:
+        # 重新抛出异常，让上层调用者处理
+        raise
+    
+    return success_count == len(subtitle_urls)
+
+
+def _download_subtitle_file(url: str, output_path: str) -> bool:
+    """
+    下载单个字幕文件
+    
+    参数:
+        url: 字幕 URL
+        output_path: 本地输出路径
+    
+    返回值:
+        True 下载成功，False 下载失败
+    
+    处理:
+        - 使用 urllib 下载文件
+        - 设置超时时间
+        - 处理网络错误
+        - 创建必要的目录
+    """
+    try:
+        # 确保目录存在
+        output_dir = os.path.dirname(output_path)
+        if output_dir and not os.path.exists(output_dir):
+            os.makedirs(output_dir, exist_ok=True)
+        
+        # 设置请求头，模拟浏览器
+        headers = {
+            'User-Agent': 'Hills Windows/0.5.0 (windows; 26100.ge_release.240331-1435)'
+        }
+        request = urllib.request.Request(url, headers=headers)
+        
+        # 下载文件（超时设置为 30 秒）
+        with urllib.request.urlopen(request, timeout=30) as response:
+            with open(output_path, 'wb') as out_file:
+                out_file.write(response.read())
+        
+        return True
+    
+    except KeyboardInterrupt:
+        print(f"\n    ⚠️  用户中断字幕下载")
+        raise
+    
+    except urllib.error.HTTPError as e:
+        print(f"    HTTP 错误 {e.code}: {e.reason}")
+        return False
+    except urllib.error.URLError as e:
+        print(f"    URL 错误: {e.reason}")
+        return False
+    except Exception as e:
+        print(f"    下载错误: {e}")
         return False
 
 
