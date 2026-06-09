@@ -7,11 +7,15 @@
 """
 
 import sys
+import io
 import os
 import re
 import csv
 from datetime import datetime
 
+# 强制 stdout/stderr 使用 UTF-8
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 
 def get_csv_file_path():
     """获取 CSV 输出文件的完整路径（与脚本同目录）"""

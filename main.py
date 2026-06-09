@@ -12,6 +12,11 @@ mpv-dlp 交互式主程序
 
 import sys
 import os
+import io
+
+# 强制 stdout/stderr 使用 UTF-8
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 
 # 导入下载模块
 from mpv_download import download_video, MPVNotFoundError

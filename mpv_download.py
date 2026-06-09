@@ -13,19 +13,23 @@ mpv 视频下载模块
 """
 
 import os
+import io
 import sys
 import subprocess
 import shutil
 import hashlib
 import re
-import time
-from pathlib import Path
+# import time
+# from pathlib import Path
 from typing import Optional, Tuple, List
 from urllib.parse import urlparse, parse_qs
 import argparse
 import urllib.request
 import urllib.error
 
+# 强制 stdout/stderr 使用 UTF-8
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 
 class MPVNotFoundError(Exception):
     """找不到 mpv 可执行文件时抛出"""

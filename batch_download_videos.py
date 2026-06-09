@@ -8,15 +8,19 @@ CSV 格式: 第一列为链接，第二列为标题（作为文件名），第�
 
 import sys
 import os
+import io
 import csv
 import time
-from pathlib import Path
+# from pathlib import Path
 from typing import List, Tuple
 import ast
 
 # 导入 mpv_download 模块
 from mpv_download import download_video, download_subtitles
 
+# 强制 stdout/stderr 使用 UTF-8
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 
 def get_csv_file_from_args() -> str:
     """

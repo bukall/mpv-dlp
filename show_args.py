@@ -7,8 +7,13 @@
 
 import sys
 import os
+import io
 import time
 from datetime import datetime
+
+# 强制 stdout/stderr 使用 UTF-8
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 
 def get_log_file_path():
     """获取日志文件的完整路径（与脚本同目录）"""
